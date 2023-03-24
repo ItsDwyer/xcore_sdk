@@ -17,7 +17,7 @@
 #include "platform/platform_init.h"
 #include "platform/driver_instances.h"
 #include "mem_analysis/mem_analysis.h"
-#include "example_pipeline/example_pipeline.h"
+#include "example_pipeline/example_pipeline.h" //The important one
 #include "filesystem/filesystem_demo.h"
 #include "gpio_ctrl/gpio_ctrl.h"
 #include "uart/uart_demo.h"
@@ -41,10 +41,10 @@ void startup_task(void *arg)
 
 #if ON_TILE(0)
     /* Initialize filesystem  */
-    rtos_fatfs_init(qspi_flash_ctx);
+    // rtos_fatfs_init(qspi_flash_ctx);
 
     /* Create the filesystem demo task */
-    filesystem_demo_create(appconfFILESYSTEM_DEMO_TASK_PRIORITY);
+    // filesystem_demo_create(appconfFILESYSTEM_DEMO_TASK_PRIORITY); //COMMENTED OUT FOR SOME REASON
 #endif
 
 #if ON_TILE(1)
@@ -55,7 +55,7 @@ void startup_task(void *arg)
     example_pipeline_init(appconfAUDIO_PIPELINE_TASK_PRIORITY);
 
     /* Create uart demo tasks and receivers */
-    uart_demo_create(appconfFILESYSTEM_DEMO_TASK_PRIORITY);
+    // uart_demo_create(appconfFILESYSTEM_DEMO_TASK_PRIORITY); //Commented out to stop error
 #endif
 
 	for (;;) {
