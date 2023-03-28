@@ -15,7 +15,7 @@
 #define appconfMQTT_PORT 8883
 // If connecting to a MQTT broker on your PC, like mosquitto,
 // appconfMQTT_HOSTNAME will likely be your IP address
-#define appconfMQTT_HOSTNAME "your endpoint here"
+#define appconfMQTT_HOSTNAME "192.168.0.102"
 #define appconfMQTT_CLIENT_ID "explorer"
 #define appconfMQTT_DEMO_TOPIC "explorer/ledctrl"
 
