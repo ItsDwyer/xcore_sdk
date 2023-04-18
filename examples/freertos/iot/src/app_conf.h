@@ -18,6 +18,7 @@
 #define appconfMQTT_HOSTNAME "192.168.0.102"
 #define appconfMQTT_CLIENT_ID "explorer"
 #define appconfMQTT_DEMO_TOPIC "explorer/ledctrl"
+#define appconfMQTT_MIC_TOPIC "explorer/mics"
 
 /* Task Priorities */
 #define appconfMQTT_TASK_PRIORITY (configMAX_PRIORITIES - 3)

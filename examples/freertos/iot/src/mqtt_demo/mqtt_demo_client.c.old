@@ -37,7 +37,6 @@
 const char* HOSTNAME = appconfMQTT_HOSTNAME;
 const char* client_str = appconfMQTT_CLIENT_ID;
 const char* topic = appconfMQTT_DEMO_TOPIC;
-const char* mic_topic = appconfMQTT_MIC_TOPIC;
 
 typedef struct net_conn_args
 {
@@ -52,112 +51,18 @@ static uint32_t val;
 
 #define MAX_TOKENS 10
 
-//--------------------------------//
-//Added params
 
-#include <stdio.h>
-#include <stdint.h>
-// #include "mic_array.h"; //No library :(
-#include <math.h>
-// #include <mosquitto.h> //or whatever has the mqtt_publish command
-static int SAMPLE_RATE = 16000; //I think this is right
-static int CHANNELS = 2; //Stereo baby!
-static float PACKET_TIME = 0.02; //Packet time in seconds
-
-
-// typedef struct {
-//     // WAV file header fields
-//     char     riff[4];         // "RIFF"
-//     uint32_t file_size;       // total file size - 8 bytes
-//     char     wave[4];         // "WAVE"
-//     char     fmt[4];          // "fmt "
-//     uint32_t fmt_size;        // size of the fmt chunk (16 bytes)
-//     uint16_t audio_format;    // audio format (1 for PCM)
-//     uint16_t num_channels;    // number of channels
-//     uint32_t sample_rate;     // sample rate
-//     uint32_t byte_rate;       // byte rate (num_channels * sample_rate * bits_per_sample / 8)
-//     uint16_t block_align;     // block align (num_channels * bits_per_sample / 8)
-//     uint16_t bits_per_sample; // bits per sample
-//     char     data[4];         // "data"
-//     uint32_t data_size;       // size of the audio data
-// } WAVHeader;
-
-void publish_test(MQTTClient* client){
-
-	MQTTMessage send;
-	send.qos 			= 2;//ensure packets arrive in order!
-	send.retained 		= 0;
-	send.dup			= 'a';
-	send.id				= '0';
-	send.payload		= "Starting audio stream:";
-	send.payloadlen		= 22;
-
-	MQTTPublish(client, mic_topic, &send);
-	debug_printf("Sent test publish\n");
-
-	int SAMPLE_SIZE = SAMPLE_RATE * CHANNELS * PACKET_TIME;
-
-	debug_printf("Initilized samples with sample size %d \n", SAMPLE_SIZE);
-
-	uint16_t audio_packet[CHANNELS]; //Start the audio array
-	audio_packet[0] = '\0'; //Initilize with null character for some reason?
-	debug_printf("Initilized packet\n");
-	
-	// WAVHeader header = {
-	// 	.riff = {'R', 'I', 'F', 'F'},
-	// 	.wave = {'W', 'A', 'V', 'E'},
-	// 	.fmt = {'f', 'm', 't', ' '},
-	// 	.fmt_size = 8,
-	// 	.audio_format = 1,
-	// 	.num_channels = 2,
-	// 	.sample_rate = SAMPLE_RATE,
-	// 	.bits_per_sample = SAMPLE_SIZE,
-	// 	.data = {'d', 'a', 't', 'a'},
- 	// };
-
-	float w = 2 * M_PI * 700; //700hz test tone
-	int k=1;
-	debug_printf("Starting stream:\n");
-	for (;;) {
-		
-		if (k>=20){k=1;}
-
-		for (int i=0; i<SAMPLE_SIZE; i++){
-			debug_printf("filling audio: %d \n", i);
-			for (int j=0; j < CHANNELS; j++){
-				audio_packet[i*2+j] = (uint16_t)(32767 * sinf(w*(i+(SAMPLE_SIZE*k))));
-			}
-		}
-
-		k++;
-		
-		debug_printf("Setting Packet\n");
-		send.payload		= audio_packet;
-		debug_printf("Setting Size\n");
-		send.payloadlen		= SAMPLE_SIZE;
-		debug_printf("Sending\n");
-		MQTTPublish(client, mic_topic, &send); //Publish audio data to MQTT every time loop runs!
-		// delay(SAMPLE_TIME); //Should delay, don't know what package to import for it
-		debug_printf("Audio sent!\n");
-	}
-	debug_printf("HOW?\n");
-}
-
-void messageArrived(MessageData* data) //IMPORTANT
+void messageArrived(MessageData* data)
 {
 	char* payload = data->message->payload;
 	int payload_len = data->message->payloadlen;
-	jsmn_parser p; //EVERYTHING PAST HERE IS FOR THE JSON STUFF!
+	jsmn_parser p;
 	jsmntok_t tkn[MAX_TOKENS];
 	int r;
-	// publish_mic_audio(); //just shoving it here to test
 
 	jsmn_init(&p);
 	r = jsmn_parse(&p, payload, payload_len, tkn, MAX_TOKENS );
 	debug_printf("r:%d\n",r);
-
-	
-
 	for( int i=0; i<r; i++ )
 	{
 		debug_printf("json[%d]:%.*s\n", i, tkn[i].end - tkn[i].start, payload + tkn[i].start);
@@ -208,8 +113,6 @@ void messageArrived(MessageData* data) //IMPORTANT
 		}
 	}
 
-	// publish_test(data);
-
     rtos_gpio_port_out(gpio, led_port, val);
 
 	debug_printf("Message arrived on topic %.*s: %.*s\n", data->topicName->lenstring.len, data->topicName->lenstring.data,
@@ -243,8 +146,6 @@ static void mqtt_handler( void* arg )
 	connectData.MQTTVersion = 3;
 	connectData.clientID.cstring = ( char * )client_str;
 
-	// setup_mics(); //not needed?
-	
 	for( ;; )
 	{
 		if( ( retval = MQTTConnect( &client, &connectData ) ) != 0 )
@@ -255,10 +156,6 @@ static void mqtt_handler( void* arg )
 		else
 		{
 			debug_printf("MQTT Connected\n");
-			
-			debug_printf("Started Publisher on mic_topic\n");
-			publish_test(&client);
-			
 
 			if( ( retval = MQTTSubscribe( &client, topic, QOS1, messageArrived ) ) != 0 )
 			{
@@ -278,7 +175,6 @@ static void mqtt_handler( void* arg )
 				}
 				break;
 			}
-			
 		}
 	}
 	debug_printf("MQTT Cleanup\n");
@@ -317,23 +213,25 @@ static void mqtt_demo_connect( void* arg )
 	debug_printf("Got ip\n");
 
 	sAddr.sin_addr = ip;
-	
+	debug_printf("Got to line 216\n");
 	/* TODO make these args */
 	sAddr.sin_port = FreeRTOS_htons( appconfMQTT_PORT );
+	debug_printf("Got to line 219\n");
 	Socket_t socket;
 	/* These can be shared by multiple connections */
 	mbedtls_x509_crt* cert = pvPortMalloc( sizeof( mbedtls_x509_crt ) );
 	mbedtls_pk_context* prvkey = pvPortMalloc( sizeof( mbedtls_pk_context ) );
 	mbedtls_x509_crt* ca = pvPortMalloc( sizeof( mbedtls_x509_crt ) );
+	debug_printf("Got to line 225\n");
 	// while( ( tls_platform_ready() == 0 ) || ( is_time_synced() == 0 ) )
 	// {
 	// 	vTaskDelay( pdMS_TO_TICKS( 100 ) );
 	// } //removed to fake tls cert because we can't reach smtp time servers :/
-	debug_printf("Faking time\n");
 	rtos_time_t faked_time;
-	faked_time.seconds = 1681509984; //THIS WAS WORKING WHY IS IT NOT NOW???
+	faked_time.seconds = 1680294778;
 	faked_time.microseconds = 0;
 	rtos_time_set(faked_time);
+	debug_printf("Got to line 230\n");
 	mbedtls_x509_crt_init( cert );
 	mbedtls_pk_init( prvkey );
 	mbedtls_x509_crt_init( ca );
@@ -341,9 +239,12 @@ static void mqtt_demo_connect( void* arg )
 	get_device_cert( cert );
 	get_device_prvkey( prvkey );
 	get_ca_cert( ca );
+	debug_printf("Got to line 238\n");
 	/* These can be shared by multiple connections, if same credentials are used */
 	mbedtls_ssl_config* ssl_conf  = pvPortMalloc( sizeof( mbedtls_ssl_config ) );
+	debug_printf("Got to line 241\n");
 	mbedtls_ssl_config_init( ssl_conf );
+	debug_printf("Got to line 243\n");
 	if( mbedtls_ssl_config_defaults( ssl_conf,
 									 MBEDTLS_SSL_IS_CLIENT,
 									 MBEDTLS_SSL_TRANSPORT_STREAM,
@@ -352,22 +253,24 @@ static void mqtt_demo_connect( void* arg )
 	{
 		configASSERT(0); /* Failed to initialize ssl conf with defaults */
 	}
+	debug_printf("Got to line 252\n");
 	if( mbedtls_ssl_conf_own_cert( ssl_conf, cert, prvkey ) != 0 )
 	{
 		configASSERT(0); /* Failed to initialize ssl conf with device cert and key */
 	}
+	debug_printf("Got to line 257\n");
 	mbedtls_ctr_drbg_context *drbg_ptr = get_shared_drbg_ctx();
 	mbedtls_ssl_conf_rng( ssl_conf, mbedtls_ctr_drbg_random, drbg_ptr );
-
+	debug_printf("Got to line 260\n");
 	mbedtls_ssl_conf_authmode( ssl_conf, MBEDTLS_SSL_VERIFY_REQUIRED );
 	mbedtls_ssl_conf_ca_chain( ssl_conf, ca, NULL );
-
+	debug_printf("Got to line 263\n");
 #ifdef MBEDTLS_DEBUG_C
 	/* Add debug function to the conf */
 	mbedtls_ssl_conf_dbg( ssl_conf, default_mbedtls_debug, NULL );
 	mbedtls_debug_set_threshold(4);
 #endif
-	debug_printf("Trying the handshake...\n");
+	debug_printf("Got to line 2\n");
 	/* SSL context is per connection */
 	mbedtls_ssl_context* ssl_ctx = pvPortMalloc( sizeof( mbedtls_ssl_context ) );
 
@@ -415,7 +318,7 @@ static void mqtt_demo_connect( void* arg )
 							 FREERTOS_SO_SNDTIMEO,
 							 &send_timeout,
 							 sizeof( TickType_t ) );
-		debug_printf("Shaking...\n");
+
 		if(	FreeRTOS_connect( socket, &sAddr, sizeof( sAddr ) ) == 0 )
 		{
 			tls_ctx->socket = socket;
@@ -449,7 +352,7 @@ static void mqtt_demo_connect( void* arg )
 					handler_args->connection_task = xTaskGetCurrentTaskHandle();
 
 					xTaskCreate( mqtt_handler, "mqtt", MQTT_DEMO_HANDLER_STACK_SIZE, ( void * ) handler_args, uxTaskPriorityGet( NULL ) + 1, &handler_task );
-//IMPORTANT!!!
+
 					vTaskSuspend( NULL );
 					vPortFree( handler_args );
 				}
