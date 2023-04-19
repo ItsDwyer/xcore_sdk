@@ -14,9 +14,9 @@ def on_message(client, userdata, message):
 client = mqtt.Client()
 
 client.tls_set(
-                ca_certs="../../filesystem_support/mqtt_broker_certs/ca.crt",
-                certfile="../../filesystem_support/mqtt_broker_certs/client.crt",
-                keyfile="../../filesystem_support/mqtt_broker_certs/client.key",
+                ca_certs="mqtt_broker_certs/ca.crt",
+                certfile="mqtt_broker_certs/client.crt",
+                keyfile="mqtt_broker_certs/client.key",
                 cert_reqs=ssl.CERT_NONE,
                 tls_version=ssl.PROTOCOL_TLSv1_2
             )

@@ -61,7 +61,7 @@ static uint32_t val;
 #include <math.h>
 // #include <mosquitto.h> //or whatever has the mqtt_publish command
 static int SAMPLE_RATE = 16000; //I think this is right
-static int CHANNELS = 2; //Stereo baby!
+static int CHANNELS = 1; //Stereo baby!
 static float PACKET_TIME = 0.02; //Packet time in seconds
 
 
@@ -120,21 +120,23 @@ void publish_test(MQTTClient* client){
 	debug_printf("Starting stream:\n");
 	for (;;) {
 		
-		if (k>=20){k=1;}
+		if ( k >= 20 ){ k = 1 ; }
 
 		for (int i=0; i<SAMPLE_SIZE; i++){
 			debug_printf("filling audio: %d \n", i);
-			for (int j=0; j < CHANNELS; j++){
-				audio_packet[i*2+j] = (uint16_t)(32767 * sinf(w*(i+(SAMPLE_SIZE*k))));
+			for (int j=0; j <= CHANNELS; j++){
+				// audio_packet[i*2+j] = (uint16_t)(32767 * sinf(w*(i+(SAMPLE_SIZE*k))));
+				audio_packet[i*2+j] = (uint16_t)(i);
+
 			}
 		}
 
 		k++;
 		
 		debug_printf("Setting Packet\n");
-		send.payload		= audio_packet;
+		send.payload	= audio_packet;
 		debug_printf("Setting Size\n");
-		send.payloadlen		= SAMPLE_SIZE;
+		send.payloadlen	= SAMPLE_SIZE;
 		debug_printf("Sending\n");
 		MQTTPublish(client, mic_topic, &send); //Publish audio data to MQTT every time loop runs!
 		// delay(SAMPLE_TIME); //Should delay, don't know what package to import for it
@@ -242,8 +244,6 @@ static void mqtt_handler( void* arg )
 
 	connectData.MQTTVersion = 3;
 	connectData.clientID.cstring = ( char * )client_str;
-
-	// setup_mics(); //not needed?
 	
 	for( ;; )
 	{
@@ -331,7 +331,7 @@ static void mqtt_demo_connect( void* arg )
 	// } //removed to fake tls cert because we can't reach smtp time servers :/
 	debug_printf("Faking time\n");
 	rtos_time_t faked_time;
-	faked_time.seconds = 1681509984; //THIS WAS WORKING WHY IS IT NOT NOW???
+	faked_time.seconds = 168185455; //THIS WAS WORKING WHY IS IT NOT NOW???
 	faked_time.microseconds = 0;
 	rtos_time_set(faked_time);
 	mbedtls_x509_crt_init( cert );
