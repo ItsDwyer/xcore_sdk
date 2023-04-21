@@ -1,12 +1,5 @@
 import paho.mqtt.client as mqtt
-
 import ssl
-
-# import configparser
-
-# config = configparser.ConfigParser()
-# config.read('../app_config.h') //gave up on this
-# hostname = config.get()
 
 def on_message(client, userdata, message):
     print (message.payload) #Print audio data for test
