@@ -1,5 +1,7 @@
 import subprocess
 
+from mqtt_config import MQTT_SERVER, MQTT_PORT, MQTT_TOPIC, TLS_CERT, TLS_KEY, TLS_CA_CERTS, NUM_CHANNELS, SAMPLE_WIDTH, SAMPLE_RATE, CHUNK_SIZE
+
 # MQTT parameters
 cafile = "mqtt_broker_certs/ca.crt"
 certfile = "mqtt_broker_certs/client.crt"

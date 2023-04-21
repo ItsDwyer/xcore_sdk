@@ -1,6 +1,8 @@
 import paho.mqtt.publish as publish
 import os
 
+from mqtt_config import MQTT_SERVER, MQTT_PORT, MQTT_TOPIC, TLS_CERT, TLS_KEY, TLS_CA_CERTS, NUM_CHANNELS, SAMPLE_WIDTH, SAMPLE_RATE, CHUNK_SIZE
+
 MQTT_SERVER = "Localhost"
 MQTT_PORT = 8883
 
@@ -17,4 +19,4 @@ with open(file_path, "rb") as f:
     
     file_contents = f.read()
 
-    publish.single("explorer/mics", payload=file_contents, qos=0, hostname=MQTT_SERVER, port=MQTT_PORT, tls={ "ca_certs": TLS_CA_CERTS,"certfile": TLS_CERT,"keyfile": TLS_KEY,})
+    publish.single("explorer/mics", payload=file_contents, qos=1, hostname=MQTT_SERVER, port=MQTT_PORT, tls={ "ca_certs": TLS_CA_CERTS,"certfile": TLS_CERT,"keyfile": TLS_KEY,})
