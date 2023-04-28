@@ -17,7 +17,8 @@
 /* App headers */
 #include "tile_support.h"
 #include "app_pll_ctrl.h"
-#include "aic3204.h"
+// #include "aic3204.h"
+#include "cmx655d.h"
 
 /** TILE 0 Clock Blocks */
 #define SPI_CLKBLK      XS1_CLKBLK_1
