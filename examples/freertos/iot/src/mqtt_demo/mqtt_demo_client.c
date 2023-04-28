@@ -62,25 +62,7 @@ static uint32_t val;
 // #include <mosquitto.h> //or whatever has the mqtt_publish command
 static int SAMPLE_RATE = 16000; //I think this is right
 static int CHANNELS = 1; //Stereo baby!
-static float PACKET_TIME = 0.02; //Packet time in seconds
-
-
-// typedef struct {
-//     // WAV file header fields
-//     char     riff[4];         // "RIFF"
-//     uint32_t file_size;       // total file size - 8 bytes
-//     char     wave[4];         // "WAVE"
-//     char     fmt[4];          // "fmt "
-//     uint32_t fmt_size;        // size of the fmt chunk (16 bytes)
-//     uint16_t audio_format;    // audio format (1 for PCM)
-//     uint16_t num_channels;    // number of channels
-//     uint32_t sample_rate;     // sample rate
-//     uint32_t byte_rate;       // byte rate (num_channels * sample_rate * bits_per_sample / 8)
-//     uint16_t block_align;     // block align (num_channels * bits_per_sample / 8)
-//     uint16_t bits_per_sample; // bits per sample
-//     char     data[4];         // "data"
-//     uint32_t data_size;       // size of the audio data
-// } WAVHeader;
+static int PACKET_TIME = 2; //Packet time in seconds
 
 void publish_test(MQTTClient* client){
 
@@ -102,18 +84,6 @@ void publish_test(MQTTClient* client){
 	uint16_t audio_packet[CHANNELS]; //Start the audio array
 	audio_packet[0] = '\0'; //Initilize with null character for some reason?
 	debug_printf("Initilized packet\n");
-	
-	// WAVHeader header = {
-	// 	.riff = {'R', 'I', 'F', 'F'},
-	// 	.wave = {'W', 'A', 'V', 'E'},
-	// 	.fmt = {'f', 'm', 't', ' '},
-	// 	.fmt_size = 8,
-	// 	.audio_format = 1,
-	// 	.num_channels = 2,
-	// 	.sample_rate = SAMPLE_RATE,
-	// 	.bits_per_sample = SAMPLE_SIZE,
-	// 	.data = {'d', 'a', 't', 'a'},
- 	// };
 
 	float w = 2 * M_PI * 700; //700hz test tone
 	int k=1;
@@ -314,7 +284,7 @@ static void mqtt_demo_connect( void* arg )
 		}
 		vTaskDelay( pdMS_TO_TICKS(100) );
 	}
-	debug_printf("Got ip\n");
+	debug_printf("Got ip: %s\n", HOSTNAME);
 
 	sAddr.sin_addr = ip;
 	
@@ -331,7 +301,7 @@ static void mqtt_demo_connect( void* arg )
 	// } //removed to fake tls cert because we can't reach smtp time servers :/
 	debug_printf("Faking time\n");
 	rtos_time_t faked_time;
-	faked_time.seconds = 168185455; //THIS WAS WORKING WHY IS IT NOT NOW???
+	faked_time.seconds = 168110740; //THIS WAS WORKING WHY IS IT NOT NOW???
 	faked_time.microseconds = 0;
 	rtos_time_set(faked_time);
 	mbedtls_x509_crt_init( cert );
@@ -384,10 +354,10 @@ static void mqtt_demo_connect( void* arg )
 			configASSERT(0); /* Failed to initialize ssl context */
 		}
 
-		// if( ( mbedtls_ssl_set_hostname( ssl_ctx, HOSTNAME ) ) != 0 )
-		// {
-		// 	configASSERT( 0 ); /* set hostname failed */
-		// }
+		if( ( mbedtls_ssl_set_hostname( ssl_ctx, HOSTNAME ) ) != 0 )
+		{
+			configASSERT( 0 ); /* set hostname failed */
+		}
 
 		mbedtls_ssl_set_bio( ssl_ctx, tls_ctx, tls_send, tls_recv, NULL );
 

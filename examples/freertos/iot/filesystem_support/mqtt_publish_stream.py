@@ -7,21 +7,22 @@ from mqtt_config import MQTT_SERVER, MQTT_PORT, MQTT_TOPIC, TLS_CERT, TLS_KEY, T
 
 def publish_audio_stream(filepath, mqtt_topic):
     with wave.open(filepath, 'rb') as wave_file:
-        num_channels = wave_file.getnchannels()
-        sample_width = wave_file.getsampwidth()
-        sample_rate = wave_file.getframerate()
-        total_frames = wave_file.getnframes()
+        # #DONT NEED WAV HEADER AT ALL!
+        # num_channels = wave_file.getnchannels()
+        # sample_width = wave_file.getsampwidth()
+        # sample_rate = wave_file.getframerate()
+        # total_frames = wave_file.getnframes()
         
-        wav_header = b'RIFF'
-        wav_header += struct.pack('<I', 36 + (total_frames * sample_width * num_channels))
-        wav_header += b'WAVE'
-        wav_header += b'fmt '
-        wav_header += struct.pack('<IHHIIHH', 16, 1, num_channels, sample_rate, sample_rate * sample_width * num_channels, sample_width * num_channels, sample_width * 8)
-        wav_header += b'data'
-        wav_header += struct.pack('<I', total_frames * sample_width * num_channels)
+        # wav_header = b'RIFF'
+        # wav_header += struct.pack('<I', 36 + (total_frames * sample_width * num_channels))
+        # wav_header += b'WAVE'
+        # wav_header += b'fmt '
+        # wav_header += struct.pack('<IHHIIHH', 16, 1, num_channels, sample_rate, sample_rate * sample_width * num_channels, sample_width * num_channels, sample_width * 8)
+        # wav_header += b'data'
+        # wav_header += struct.pack('<I', total_frames * sample_width * num_channels)
         
-        publish.single(mqtt_topic, payload=wav_header, qos=2, hostname=MQTT_SERVER, port=MQTT_PORT, tls={
-                       "ca_certs": TLS_CA_CERTS, "certfile": TLS_CERT, "keyfile": TLS_KEY})
+        # publish.single(mqtt_topic, payload=wav_header, qos=2, hostname=MQTT_SERVER, port=MQTT_PORT, tls={
+        #                "ca_certs": TLS_CA_CERTS, "certfile": TLS_CERT, "keyfile": TLS_KEY})
         
         with open(filepath, "rb") as f:
             while True:
@@ -31,7 +32,7 @@ def publish_audio_stream(filepath, mqtt_topic):
                 publish.single(mqtt_topic, payload=chunk, qos=2, hostname=MQTT_SERVER, port=MQTT_PORT, tls={
                        "ca_certs": TLS_CA_CERTS, "certfile": TLS_CERT, "keyfile": TLS_KEY})
 
-print(f"Publishing test_tone_700hz.wav as a continuous audio stream")
+print(f"Publishing wav as a continuous audio stream")
 publish_audio_stream("test_tone_700hz.wav", MQTT_TOPIC)
 
 
