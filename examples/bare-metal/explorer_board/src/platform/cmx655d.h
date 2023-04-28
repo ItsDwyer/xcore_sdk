@@ -2,7 +2,7 @@
 #define CMX655D_H_
 
 // CMX655D Device I2C Address
-#define CMX655D_I2C_DEVICE_ADDR 0x54 //I think this is right?
+#define CMX655D_I2C_DEVICE_ADDR 0x54 //Address is correct :/
 
 // Interrupt and Status
 #define CMX655D_ISR_ADDRESS 0x00 // Interrupt Status Register

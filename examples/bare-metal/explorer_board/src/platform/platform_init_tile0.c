@@ -24,7 +24,7 @@ void platform_init_tile_0(chanend_t c_other_tile)
 
     tile0_init_i2c();
 
-    /* Configure DAC EDITED TO BE USING THE CMX655D ON DAUGHTERBOARD */
+    /* Configure DAC (EDITED TO BE USING THE CMX655D ON DAUGHTERBOARD) */
     if (cmx655d_init(&(tile0_ctx->i2c_ctx)) != 0) {
         debug_printf("DAC Failed\n");
         chanend_out_byte(c_other_tile, 0x01);
